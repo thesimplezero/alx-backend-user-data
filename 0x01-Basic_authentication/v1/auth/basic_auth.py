@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
-"""Implement Basic Authentication
+"""Implement basic auth
 """
 
 import base64
@@ -11,12 +12,12 @@ from api.v1.auth.auth import Auth
 
 
 class BasicAuth(Auth):
-    """Class implementing Basic Authentication
+    """implement basic auth
     """
 
     def extract_base64_authorization_header(self,
                                             authorization_header: str) -> str:
-        """Extract Base64-encoded authorization header
+        """extract base64 authorization header
         """
         if authorization_header is None:
             return None
@@ -30,20 +31,23 @@ class BasicAuth(Auth):
                                            base64_authorization_header: str) -> str:
         """Decode a Base64-encoded string
         """
-        if not isinstance(base64_authorization_header, str):
-            return None
-        try:
-            decoded = base64.b64decode(base64_authorization_header, validate=True)
-            return decoded.decode('utf-8')
-        except (binascii.Error, UnicodeDecodeError):
-            return None
+        if type(base64_authorization_header) == str:
+            try:
+                res = base64.b64decode(
+                    base64_authorization_header,
+                    validate=True,
+                )
+                return res.decode('utf-8')
+            except (binascii.Error, UnicodeDecodeError):
+                return None
 
     def extract_user_credentials(self,
                                  decoded_base64_authorization_header: str
                                  ) -> (str, str):
-        """Extract user credentials from decoded Base64 string
+        """extract user credentials
         """
-        if decoded_base64_authorization_header is None:
+        if decoded_base64_authorization_header is None or not isinstance(
+                decoded_base64_authorization_header, str):
             return (None, None)
         if ':' not in decoded_base64_authorization_header:
             return (None, None)
@@ -52,23 +56,25 @@ class BasicAuth(Auth):
     def user_object_from_credentials(self,
                                      user_email: str,
                                      user_pwd: str) -> TypeVar('User'):
-        """Retrieve user object from provided credentials
+        """user object from credentials
         """
-        if user_email is None or user_pwd is None:
+        if user_email is None or not isinstance(user_email, str):
+            return None
+        if user_pwd is None or not isinstance(user_pwd, str):
             return None
         try:
             users = User.search({"email": user_email})
-            if not users:
+            if not users or users == []:
                 return None
-            for user in users:
-                if user.is_valid_password(user_pwd):
-                    return user
+            for u in users:
+                if u.is_valid_password(user_pwd):
+                    return u
             return None
         except Exception:
             return None
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """Retrieve the current user from the request
+        """current user
         """
         auth_header = self.authorization_header(request)
         if auth_header is None:
