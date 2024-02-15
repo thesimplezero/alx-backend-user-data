@@ -1,32 +1,46 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-"""manage API authentication"""
+"""API authentication
+"""
 from flask import request
 from typing import List, TypeVar
+import os
 
 
-class Auth(object):
-    """manage API authentication"""
-
+class Auth():
+    """Manages API authentication
+    """
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """require authentication"""
-        if path is None or excluded_paths is None or excluded_paths == []:
+        """Returns true if a route requires authorization,
+        false otherwise.
+        """
+        if not path or not excluded_paths or not len(excluded_paths):
             return True
-
-        # Check if the path matches any excluded path with a wildcard at the end
-        for excluded_path in excluded_paths:
-            if excluded_path.endswith('*') and path.startswith(excluded_path[:-1]):
-                return False
+        if path[-1] != '/':
+            path = path + '/'
+        if path in excluded_paths:
+            return False
 
         return True
 
     def authorization_header(self, request=None) -> str:
-        """authorization header"""
-        if request is None:
+        """Checks if request contains authorization in its
+        header.
+        """
+        if not request:
+            return None
+        if not request.headers.get('Authorization'):
             return None
         return request.headers.get('Authorization')
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """current user"""
+        """Current user method
+        """
         return None
+
+    def session_cookie(self, request=None):
+        """Return the cookie of the session
+        """
+        if not request:
+            return None
+        session_name = os.getenv('SESSION_NAME')
+        return request.cookies.get(session_name)
