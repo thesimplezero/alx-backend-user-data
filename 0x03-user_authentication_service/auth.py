@@ -21,7 +21,7 @@ class Auth:
         except ValueError:
             raise
         except Exception:
-            hashed_pwd = self._hash_password(password)
+            hashed_pwd = _hash_password(password)
             user = self._db.add_user(email, hashed_pwd)
             return user
 
@@ -37,7 +37,7 @@ class Auth:
     def create_session(self, email: str) -> str:
         """Create a session for the user."""
         user = self._db.find_user_by(email=email)
-        session_id = self._generate_uuid()
+        session_id = _generate_uuid()
         self._db.update_user(user.id, session_id=session_id)
         return session_id
 
@@ -62,7 +62,7 @@ class Auth:
         """Generate a reset password token."""
         try:
             user = self._db.find_user_by(email=email)
-            reset_token = self._generate_uuid()
+            reset_token = _generate_uuid()
             self._db.update_user(user.id, reset_token=reset_token)
             return reset_token
         except Exception:
@@ -72,19 +72,17 @@ class Auth:
         """Update user password using reset token."""
         try:
             user = self._db.find_user_by(reset_token=reset_token)
-            hashed_pwd = self._hash_password(password)
+            hashed_pwd = _hash_password(password)
             self._db.update_user(user.id, hashed_password=hashed_pwd,
                                  reset_token=None)
             return None
         except Exception:
             raise ValueError
 
-    @staticmethod
-    def _hash_password(password: str) -> str:
-        """Hash the provided password."""
-        return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+def _hash_password(password: str) -> str:
+    """Hash the provided password."""
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
-    @staticmethod
-    def _generate_uuid() -> str:
-        """Generate a UUID."""
-        return str(uuid.uuid1())
+def _generate_uuid() -> str:
+    """Generate a UUID."""
+    return str(uuid.uuid1())
