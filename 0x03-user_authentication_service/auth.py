@@ -6,6 +6,7 @@ from typing import TypeVar
 from db import DB
 from user import User
 
+
 class Auth:
     """Authentication class that manages user authentication."""
 
@@ -79,9 +80,11 @@ class Auth:
         except Exception:
             raise ValueError
 
+
 def _hash_password(password: str) -> str:
-    """Hash the provided password."""
-    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    """Hash password."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
 
 def _generate_uuid() -> str:
     """Generate a UUID."""
